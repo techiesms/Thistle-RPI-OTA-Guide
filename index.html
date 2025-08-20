@@ -270,16 +270,17 @@ sudo tuc -c /boot/tuc-config.json</code></pre><p class="explain">→ Confirm the
     </section>
   </main>
 
+  
   <script>
-    // Add copy buttons to all code blocks
     document.querySelectorAll('pre').forEach(pre => {
+      const codeEl = pre.querySelector('code');
       const btn = document.createElement('button');
       btn.className = 'copy-btn';
       btn.textContent = 'Copy';
+
       btn.addEventListener('click', async () => {
-        const code = pre.innerText;
         try {
-          await navigator.clipboard.writeText(code);
+          await navigator.clipboard.writeText(codeEl.innerText.trim());
           btn.textContent = 'Copied!';
           setTimeout(() => (btn.textContent = 'Copy'), 1500);
         } catch (e) {
@@ -287,8 +288,10 @@ sudo tuc -c /boot/tuc-config.json</code></pre><p class="explain">→ Confirm the
           setTimeout(() => (btn.textContent = 'Copy'), 1500);
         }
       });
+
       pre.appendChild(btn);
     });
   </script>
 </body>
 </html>
+
