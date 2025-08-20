@@ -108,3 +108,22 @@ pre code{white-space:pre}
 .copy-btn:hover{opacity:1}
 
 .footnote{color:var(--muted);margin-top:1rem}
+
+.footer {
+  background: #f5f5f5;
+  text-align: center;
+  padding: 1rem;
+  margin-top: 2rem;
+}
+
+.footer a {
+  color: #007BFF;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0 .5rem;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
