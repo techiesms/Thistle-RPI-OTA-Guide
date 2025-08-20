@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fail-safe OTA Updates on Raspberry Pi | techiesms</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <h1>Fail-safe OTA Updates on Raspberry Pi</h1>
+      <p>with Thistle Technologies</p>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#hardware">Hardware</a></li>
+        <li><a href="#software">Software</a></li>
+        <li><a href="#steps">Steps</a></li>
+        <li><a href="#summary">Summary</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>You are preparing a Raspberry Pi 4 to support fail-safe over-the-air (OTA) updates of its root filesystem using an A/B partitioning scheme. Updates are installed on the inactive partition, and if successful, the Pi switches to it. If the update fails, it falls back to the previous partition. Thistle tools (<code>tuc</code> and <code>trh</code>) manage these updates.</p>
+    </section>
+
+    <section id="hardware">
+      <h2>Hardware Preparation</h2>
+      <table>
+        <tr><th>Step</th><th>Why</th></tr>
+        <tr><td>Raspberry Pi 4 + 32GB Micro SD</td><td>Main device performing OTA updates</td></tr>
+        <tr><td>64GB USB Drive</td><td>Utility OS for preparing the SD card</td></tr>
+        <tr><td>USB-TTL Serial Cable</td><td>Debug boot logs via UART</td></tr>
+        <tr><td>Linux/Mac/Windows PC</td><td>Build OTA packages & connect to Pi</td></tr>
+      </table>
+    </section>
+
+    <section id="software">
+      <h2>Software Required</h2>
+      <ul>
+        <li>Raspberry Pi Imager – to install OS images</li>
+        <li>Raspberry Pi OS Lite – base OS</li>
+        <li>Thistle Release Helper (<code>trh</code>) – build & sign update bundles</li>
+        <li>Thistle Update Client (<code>tuc</code>) – install OTA updates on the Pi</li>
+      </ul>
+    </section>
+
+    <section id="steps">
+      <h2>Step-by-Step Guide</h2>
+      <details>
+        <summary>1. Prepare USB and SD card</summary>
+        <p>Flash Raspberry Pi OS Lite to USB (utility OS) and SD card (demo OS). Configure hostname, SSH, and Wi-Fi.</p>
+      </details>
+      <details>
+        <summary>2. Boot Pi into Utility OS</summary>
+        <p>Insert USB only, boot the Pi, then SSH in to prepare the SD card safely.</p>
+      </details>
+      <details>
+        <summary>3. Update Utility OS and enable serial</summary>
+        <pre><code>sudo apt update
+sudo apt dist-upgrade -y
+sudo rpi-eeprom-update -a</code></pre>
+      </details>
+      <details>
+        <summary>4. Partition SD Card (A/B setup)</summary>
+        <p>Create a new partition (mmcblk0p3) for Rootfs B using <code>fdisk</code>.</p>
+      </details>
+      <details>
+        <summary>5. Install Thistle Update Client (tuc)</summary>
+        <pre><code>wget https://downloads.thistle.tech/.../tuc-1.5.0.gz
+gunzip tuc-1.5.0.gz
+chmod +x tuc-1.5.0
+sudo cp tuc-1.5.0 /usr/bin/tuc</code></pre>
+      </details>
+      <details>
+        <summary>6. Build & Release OTA Package</summary>
+        <pre><code>./trh --signing-method="remote" prepare --target=./rootfs.img
+./trh --signing-method="remote" release</code></pre>
+      </details>
+      <details>
+        <summary>7. Run the Update</summary>
+        <pre><code>sudo tuc -c /boot/tuc-config.json</code></pre>
+      </details>
+    </section>
+
+    <section id="summary">
+      <h2>Summary</h2>
+      <ul>
+        <li>Boot from USB → prepare SD card safely</li>
+        <li>Create partitions A/B → fail-safe OTA</li>
+        <li>Install <code>tuc</code> + configure → enable updates</li>
+        <li>Release bundle → switch partitions on success</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made with ❤️ by <strong>techiesms</strong></p>
+  </footer>
+</body>
+</html>
