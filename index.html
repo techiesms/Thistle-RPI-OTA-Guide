@@ -199,7 +199,7 @@ sudo poweroff</code></pre><p class="explain">→ Ensure the demo OS outputs boot
 
       <details>
         <summary>11) Build the OTA update package (on your PC)</summary>
-        <div class="cmd"><pre><code>curl -O https://downloads.thistle.tech/.../four-v1.5.0-updated.rootfs</code></pre><p class="explain">→ Download the alternative rootfs image (your updated OS).</p></div>
+        <div class="cmd"><pre><code>curl -O https://downloads.thistle.tech/rpi/four-v1.5.0-updated.rootfs</code></pre><p class="explain">→ Download the alternative rootfs image (your updated OS).</p></div>
         <div class="cmd"><pre><code>export THISTLE_TOKEN=$(cat)</code></pre><p class="explain">→ Temporarily set your Thistle access token in the environment. (On PowerShell use <code>$env:THISTLE_TOKEN</code>.)</p></div>
         <div class="cmd"><pre><code>./trh --signing-method="remote" init -persist="/boot"</code></pre><p class="explain">→ Initialize Release Helper and store metadata under <code>/boot</code> for the client to read/update.</p></div>
         <div class="cmd"><pre><code>./trh --signing-method="remote" prepare --target=./four-v1.5.0-updated.rootfs</code></pre><p class="explain">→ Create a manifest and sign the rootfs image.</p></div>
