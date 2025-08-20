@@ -1,107 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fail-safe OTA Updates on Raspberry Pi | techiesms</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fail-safe OTA on Raspberry Pi (A/B) — techiesms</title>
+  <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <div class="hero">
-      <h1>Fail-safe OTA Updates on Raspberry Pi</h1>
-      <p>with Thistle Technologies</p>
-    </div>
-    <nav>
-      <ul>
-        <li><a href="#overview">Overview</a></li>
-        <li><a href="#hardware">Hardware</a></li>
-        <li><a href="#software">Software</a></li>
-        <li><a href="#steps">Steps</a></li>
-        <li><a href="#summary">Summary</a></li>
-      </ul>
-    </nav>
+  <header class="hero">
+    <h1>Fail-safe OTA Updates on Raspberry Pi 4</h1>
+    <p>Using Thistle (A/B Root Filesystem)</p>
+    <a class="btn" href="#steps">Start the Guide</a>
   </header>
 
-  <main>
+  <nav class="topnav">
+    <div class="container">
+      <a href="#overview">Overview</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#software">Software</a>
+      <a href="#steps">Steps</a>
+      <a href="#after">After OTA</a>
+      <a href="#status-codes">Status Codes</a>
+      <a href="#summary">Summary</a>
+    </div>
+  </nav>
+
+  <main class="container">
     <section id="overview">
-      <h2>Overview</h2>
-      <p>You are preparing a Raspberry Pi 4 to support fail-safe over-the-air (OTA) updates of its root filesystem using an A/B partitioning scheme. Updates are installed on the inactive partition, and if successful, the Pi switches to it. If the update fails, it falls back to the previous partition. Thistle tools (<code>tuc</code> and <code>trh</code>) manage these updates.</p>
+      <h2>Overview: What You’re Doing</h2>
+      <p>
+        You are preparing a Raspberry Pi 4 to support <strong>fail‑safe over‑the‑air (OTA) updates</strong> of its
+        root filesystem using an <strong>A/B partition scheme</strong> (two root partitions). At any time, the Pi boots
+        from either partition A or B. Updates are written to the inactive partition. If the update works, the Pi switches
+        to the new partition; if it fails, it automatically falls back to the previous partition. You’ll use Thistle tools
+        <code>tuc</code> (on the Pi) and <code>trh</code> (on your PC) to manage and apply updates.
+      </p>
     </section>
 
     <section id="hardware">
       <h2>Hardware Preparation</h2>
       <table>
-        <tr><th>Step</th><th>Why</th></tr>
-        <tr><td>Raspberry Pi 4 + 32GB Micro SD</td><td>Main device performing OTA updates</td></tr>
-        <tr><td>64GB USB Drive</td><td>Utility OS for preparing the SD card</td></tr>
-        <tr><td>USB-TTL Serial Cable</td><td>Debug boot logs via UART</td></tr>
-        <tr><td>Linux/Mac/Windows PC</td><td>Build OTA packages & connect to Pi</td></tr>
+        <thead><tr><th>Step</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Raspberry Pi 4 + 32GB Micro SD</td>
+            <td>The main device that will perform the OTA update and boot from two different partitions.</td>
+          </tr>
+          <tr>
+            <td>64GB USB Drive</td>
+            <td>Used temporarily: boots a utility OS so we can prepare the SD card safely (not in use).</td>
+          </tr>
+          <tr>
+            <td>USB‑TTL Serial Cable</td>
+            <td>Lets you see boot logs via UART (console), even before networking is up — extremely useful for debugging.</td>
+          </tr>
+          <tr>
+            <td>Linux/Mac/Windows PC</td>
+            <td>Used for building the OTA package and talking to the Pi via SSH or Serial.</td>
+          </tr>
+        </tbody>
       </table>
     </section>
 
     <section id="software">
       <h2>Software Required</h2>
-      <ul>
-        <li>Raspberry Pi Imager – to install OS images</li>
-        <li>Raspberry Pi OS Lite – base OS</li>
-        <li>Thistle Release Helper (<code>trh</code>) – build & sign update bundles</li>
-        <li>Thistle Update Client (<code>tuc</code>) – install OTA updates on the Pi</li>
-      </ul>
+      <table>
+        <thead><tr><th>Item</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Raspberry Pi Imager</td><td>To install OS images (both utility OS and the demo OS).</td></tr>
+          <tr><td>Official Raspberry Pi OS Lite image</td><td>Base OS that will later support OTA updates.</td></tr>
+          <tr><td>Thistle Release Helper (<code>trh</code>)</td><td>Used on PC to build &amp; sign the update bundles.</td></tr>
+          <tr><td>Thistle Update Client (<code>tuc</code>)</td><td>Runs on the Raspberry Pi to download and install OTA updates.</td></tr>
+        </tbody>
+      </table>
     </section>
 
     <section id="steps">
-      <h2>Step-by-Step Guide</h2>
+      <h2>Step‑by‑Step Guide (Collapsible)</h2>
+
       <details>
-        <summary>1. Prepare USB and SD card</summary>
-        <p>Flash Raspberry Pi OS Lite to USB (utility OS) and SD card (demo OS). Configure hostname, SSH, and Wi-Fi.</p>
+        <summary>1) Prepare USB and SD card with Raspberry Pi OS (on your PC)</summary>
+        <p>Use <strong>Raspberry Pi Imager</strong> to flash <em>Raspberry Pi OS Lite</em> to both drives:</p>
+        <ul>
+          <li><strong>USB drive</strong> → becomes the “utility OS” (suggested hostname: <code>rpi4-util</code>)</li>
+          <li><strong>Micro SD card</strong> → becomes the “demo OS” (suggested hostname: <code>ota-demo</code>)</li>
+        </ul>
+        <p>During “OS customization”, set:</p>
+        <table>
+          <thead><tr><th>Option</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Hostname</td><td>To identify the device on the network.</td></tr>
+            <tr><td>Username + Password</td><td>For SSH login.</td></tr>
+            <tr><td>Wi‑Fi credentials + enable SSH</td><td>Allow headless access (no monitor/keyboard needed).</td></tr>
+          </tbody>
+        </table>
+        <p><strong>After flashing:</strong></p>
+        <ul>
+          <li>Insert the <strong>USB drive</strong> into the Pi.</li>
+          <li><strong>Do not</strong> insert the SD card yet.</li>
+        </ul>
       </details>
+
       <details>
-        <summary>2. Boot Pi into Utility OS</summary>
-        <p>Insert USB only, boot the Pi, then SSH in to prepare the SD card safely.</p>
+        <summary>2) Boot Pi (USB only) into Utility OS and SSH in</summary>
+        <p><em>Why:</em> We want to edit/partition the SD card without booting from it (which would lock it). So we boot from USB, then insert the SD and modify it.</p>
+        <div class="cmd">
+          <pre><code>ssh &lt;username&gt;@&lt;rpi4-ip-addr&gt;</code></pre>
+          <p class="explain">→ Connect to the Pi over the network (find its IP on your router or via a network scan).</p>
+        </div>
       </details>
+
+      <details open>
+        <summary>3) Update the Utility OS and enable serial console</summary>
+        <div class="cmd"><pre><code>sudo apt update</code></pre><p class="explain">→ Refresh the list of available packages.</p></div>
+        <div class="cmd"><pre><code>sudo apt dist-upgrade -y</code></pre><p class="explain">→ Install all updates (including kernel and dependencies).</p></div>
+        <div class="cmd"><pre><code>sudo rpi-eeprom-update -a</code></pre><p class="explain">→ Update Raspberry Pi bootloader firmware. Older Pi 4 bootloaders may break A/B boot.</p></div>
+        <div class="cmd"><pre><code>sudo raspi-config</code></pre><p class="explain">→ Enable <strong>Serial Port</strong> in Interface Options so the UART pins (GPIO 14/15) can output boot logs.</p></div>
+      </details>
+
       <details>
-        <summary>3. Update Utility OS and enable serial</summary>
-        <pre><code>sudo apt update
-sudo apt dist-upgrade -y
-sudo rpi-eeprom-update -a</code></pre>
+        <summary>4) Insert SD card and inspect partitions</summary>
+        <div class="cmd"><pre><code>lsblk /dev/mmcblk0</code></pre><p class="explain">→ List block devices; confirm the SD has: <code>p1</code> boot (FAT32), <code>p2</code> rootfs (ext4). <code>p3</code> does not exist yet.</p></div>
       </details>
+
       <details>
-        <summary>4. Partition SD Card (A/B setup)</summary>
-        <p>Create a new partition (mmcblk0p3) for Rootfs B using <code>fdisk</code>.</p>
+        <summary>5) Create the “B” root partition</summary>
+        <div class="cmd"><pre><code>sudo fdisk /dev/mmcblk0</code></pre><p class="explain">→ Launch partition editor to create the new rootfs B partition.</p></div>
+        <div class="cmd"><pre><code># Inside fdisk:
+p          # print current partitions (note end of p2, e.g., 5390335)
+n          # new primary partition
+# First sector → NEXT FREE SECTOR (e.g., 5390336)
+# Last sector  → press ENTER to use the rest of the card
+w          # write changes</code></pre>
+          <p class="explain">→ Create <code>mmcblk0p3</code> using the free space after <code>p2</code> and save.</p>
+        </div>
+        <table>
+          <thead><tr><th>Partition</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>mmcblk0p1</td><td>/boot</td></tr>
+            <tr><td>mmcblk0p2</td><td>Rootfs A</td></tr>
+            <tr><td>mmcblk0p3</td><td>Rootfs B</td></tr>
+          </tbody>
+        </table>
       </details>
+
       <details>
-        <summary>5. Install Thistle Update Client (tuc)</summary>
-        <pre><code>wget https://downloads.thistle.tech/.../tuc-1.5.0.gz
-gunzip tuc-1.5.0.gz
-chmod +x tuc-1.5.0
-sudo cp tuc-1.5.0 /usr/bin/tuc</code></pre>
+        <summary>6) Mount the rootfs and edit files</summary>
+        <div class="cmd"><pre><code>mkdir mymount
+sudo mount /dev/mmcblk0p2 mymount/</code></pre><p class="explain">→ Mount partition <code>p2</code> (default rootfs) to a temporary directory so we can edit its files.</p></div>
+        <p>Modify <code>/etc/fstab</code>:</p>
+        <div class="cmd"><pre><code>sudo nano mymount/etc/fstab
+# Change any '/boot/firmware' entry to:
+/boot    vfat   defaults    0  1</code></pre><p class="explain">→ Raspberry Pi OS expects the boot partition at <code>/boot</code>, not <code>/boot/firmware</code>. If not fixed, the system may fail to mount /boot after OTA.</p></div>
       </details>
+
       <details>
-        <summary>6. Build & Release OTA Package</summary>
-        <pre><code>./trh --signing-method="remote" prepare --target=./rootfs.img
-./trh --signing-method="remote" release</code></pre>
+        <summary>7) Add the Thistle Update Client (tuc)</summary>
+        <div class="cmd"><pre><code>wget https://downloads.thistle.tech/.../tuc-1.5.0-aarch64-unknown-linux-musl.gz</code></pre><p class="explain">→ Download the <code>tuc</code> binary.</p></div>
+        <div class="cmd"><pre><code>gunzip tuc-1.5.0-aarch64-unknown-linux-musl.gz</code></pre><p class="explain">→ Decompress the binary.</p></div>
+        <div class="cmd"><pre><code>chmod +x tuc-1.5.0-aarch64-unknown-linux-musl</code></pre><p class="explain">→ Make it executable.</p></div>
+        <div class="cmd"><pre><code>sudo cp tuc-1.5.0-aarch64-unknown-linux-musl mymount/usr/bin/tuc</code></pre><p class="explain">→ Place it at <code>/usr/bin/tuc</code> inside the mounted rootfs so it’s available on the Pi.</p></div>
+        <div class="cmd"><pre><code>sync
+sudo umount mymount</code></pre><p class="explain">→ <code>sync</code> flushes data to disk; <code>umount</code> safely detaches the partition.</p></div>
       </details>
+
       <details>
-        <summary>7. Run the Update</summary>
-        <pre><code>sudo tuc -c /boot/tuc-config.json</code></pre>
+        <summary>8) Enable UART on the demo OS (boot partition)</summary>
+        <div class="cmd"><pre><code>sudo mount /dev/mmcblk0p1 mymount/
+sudo nano mymount/config.txt
+# Add this line:
+enable_uart=1
+sync
+sudo umount mymount
+sudo poweroff</code></pre><p class="explain">→ Ensure the demo OS outputs boot logs over UART after the switch. Power off to safely remove power before moving to the SD‑boot phase.</p></div>
       </details>
+
+      <details>
+        <summary>9) Reboot Pi with the SD card (demo OS boots)</summary>
+        <p>Unplug the USB drive (utility OS) and keep the SD card inserted.</p>
+        <div class="cmd"><pre><code>minicom -b 115200 -D /dev/ttyUSB0</code></pre><p class="explain">→ Open a serial console on your PC to watch the boot logs.</p></div>
+      </details>
+
+      <details>
+        <summary>10) Confirm system status</summary>
+        <div class="cmd"><pre><code>uname -a</code></pre><p class="explain">→ Show OS/kernel version; confirm you’re now booted into <code>ota-demo</code>.</p></div>
+        <div class="cmd"><pre><code>mount | grep /dev/mmc</code></pre><p class="explain">→ Verify that <code>/dev/mmcblk0p2</code> is currently mounted as <code>/</code>.</p></div>
+      </details>
+
+      <details>
+        <summary>11) Build the OTA update package (on your PC)</summary>
+        <div class="cmd"><pre><code>curl -O https://downloads.thistle.tech/.../four-v1.5.0-updated.rootfs</code></pre><p class="explain">→ Download the alternative rootfs image (your updated OS).</p></div>
+        <div class="cmd"><pre><code>export THISTLE_TOKEN=$(cat)</code></pre><p class="explain">→ Temporarily set your Thistle access token in the environment. (On PowerShell use <code>$env:THISTLE_TOKEN</code>.)</p></div>
+        <div class="cmd"><pre><code>./trh --signing-method="remote" init -persist="/boot"</code></pre><p class="explain">→ Initialize Release Helper and store metadata under <code>/boot</code> for the client to read/update.</p></div>
+        <div class="cmd"><pre><code>./trh --signing-method="remote" prepare --target=./four-v1.5.0-updated.rootfs</code></pre><p class="explain">→ Create a manifest and sign the rootfs image.</p></div>
+        <div class="cmd"><pre><code>./trh --signing-method="remote" release</code></pre><p class="explain">→ Upload the bundle to the Thistle backend, making it available for devices.</p></div>
+      </details>
+
+      <details>
+        <summary>12) Create <code>config.json</code> and copy it to the Pi</summary>
+        <p>If your setup uses a persistent directory, set it to <code>/boot/persist</code> so it survives A/B switching.</p>
+        <div class="cmd"><pre><code>{
+  "bootloader": "RaspberryPi",
+  "part_a": "/dev/mmcblk0p2",
+  "part_b": "/dev/mmcblk0p3"
+}</code></pre><p class="explain">→ Tell the update client which bootloader is used and which partitions are A and B.</p></div>
+        <div class="cmd"><pre><code># Copy to Raspberry Pi (adjust IP and user)
+scp config.json thistle@192.168.1.102:~/tuc-config.json
+# On the Pi:
+sudo cp ~/tuc-config.json /boot</code></pre><p class="explain">→ Keep <code>config.json</code> in <code>/boot</code> so it persists across partition switches.</p></div>
+      </details>
+
+      <details>
+        <summary>13) Run the update</summary>
+        <div class="cmd"><pre><code>sudo tuc -c /boot/tuc-config.json</code></pre><p class="explain">→ Contact the Thistle backend, download the bundle, install to the inactive partition (<code>p3</code>), set boot order, and reboot.</p></div>
+        <p><strong>After reboot:</strong></p>
+        <div class="cmd"><pre><code>mount | grep /dev/mmc</code></pre><p class="explain">→ Should show <code>/dev/mmcblk0p3</code> mounted as <code>/</code> (the new rootfs).</p></div>
+        <div class="cmd"><pre><code>cat message_from_thistle.txt</code></pre><p class="explain">→ If it prints the test message, the OTA update worked.</p></div>
+        <div class="cmd"><pre><code># Finalize (mark update good)
+sudo tuc -c /boot/tuc-config.json</code></pre><p class="explain">→ Confirm the update is good so future boots continue from the updated partition.</p></div>
+      </details>
+    </section>
+
+    <section id="after">
+      <h2>After the OTA update… what happens to partition 2?</h2>
+      <p>Before the update, you boot from <code>/dev/mmcblk0p2</code> and <code>mmcblk0p3</code> is empty/inactive.</p>
+      <div class="cmd"><pre><code>sudo tuc -c /boot/tuc-config.json</code></pre><p class="explain">→ Thistle downloads the new rootfs image and writes it into the inactive partition (e.g., <code>mmcblk0p3</code>).</p></div>
+      <p>During the first reboot after the update, the bootloader switches the active partition to <code>mmcblk0p3</code>.
+      <strong>Partition 2 still exists</strong>; it becomes the backup/fallback.</p>
+      <table>
+        <thead><tr><th>Partition</th><th>Role after update</th></tr></thead>
+        <tbody>
+          <tr><td>/dev/mmcblk0p2</td><td>Standby / fallback (old system)</td></tr>
+          <tr><td>/dev/mmcblk0p3</td><td>Active rootfs with updated system</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="status-codes">
+      <h2>What does “update status 0 → 2” mean?</h2>
+      <p>These are internal Thistle status codes that describe the status of the OTA cycle.</p>
+      <table>
+        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>Idle — no update was attempted yet</td></tr>
+          <tr><td>1</td><td>Update in progress</td></tr>
+          <tr><td>2</td><td>Update successfully downloaded and applied</td></tr>
+          <tr><td>3</td><td>Update failed and fallback triggered</td></tr>
+        </tbody>
+      </table>
+      <p>So, <code>update status 0 → 2</code> means it changed from Idle (0) to Success (2) — update applied and Pi now boots from the updated partition.</p>
     </section>
 
     <section id="summary">
       <h2>Summary</h2>
-      <ul>
-        <li>Boot from USB → prepare SD card safely</li>
-        <li>Create partitions A/B → fail-safe OTA</li>
-        <li>Install <code>tuc</code> + configure → enable updates</li>
-        <li>Release bundle → switch partitions on success</li>
-      </ul>
+      <table>
+        <thead><tr><th>Step</th><th>Goal</th></tr></thead>
+        <tbody>
+          <tr><td>Boot from USB</td><td>Safely prepare SD card</td></tr>
+          <tr><td>Create p3</td><td>A/B partitioning</td></tr>
+          <tr><td>Add tuc + fix fstab</td><td>Allow OTA update capability</td></tr>
+          <tr><td>Build + Release bundle</td><td>Upload new rootfs to cloud</td></tr>
+          <tr><td>Copy config.json</td><td>Tell tuc how to switch between A/B</td></tr>
+          <tr><td>Run tuc</td><td>Apply update (fail‑safe A/B)</td></tr>
+        </tbody>
+      </table>
+      <p class="footnote">Default credentials in sample image: <code>username: thistle</code>, <code>password: raspberry</code>.</p>
+      <p class="footnote">Made with ❤️ by <strong>techiesms</strong></p>
     </section>
   </main>
 
-  <footer>
-    <p>Made with ❤️ by <strong>techiesms</strong></p>
-  </footer>
+  <script>
+    // Add copy buttons to all code blocks
+    document.querySelectorAll('pre').forEach(pre => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', async () => {
+        const code = pre.innerText;
+        try {
+          await navigator.clipboard.writeText(code);
+          btn.textContent = 'Copied!';
+          setTimeout(() => (btn.textContent = 'Copy'), 1500);
+        } catch (e) {
+          btn.textContent = 'Failed';
+          setTimeout(() => (btn.textContent = 'Copy'), 1500);
+        }
+      });
+      pre.appendChild(btn);
+    });
+  </script>
 </body>
 </html>
