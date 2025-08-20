@@ -220,7 +220,7 @@ sudo poweroff</code></pre><p class="explain">→ Ensure the demo OS outputs boot
 scp config.json thistle@192.168.1.102:~/tuc-config.json
 # On the Pi:
 cat ~/tuc-config.json
-mount | grep /dev/mmc
+mount | grep /dev/mmc 
 sudo cp ~/tuc-config.json /boot</code></pre><p class="explain">→ Keep <code>config.json</code> in <code>/boot</code> so it persists across partition switches.</p></div>
       </details>
 
