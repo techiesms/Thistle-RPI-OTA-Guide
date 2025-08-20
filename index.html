@@ -166,7 +166,7 @@ sudo mount /dev/mmcblk0p2 mymount/</code></pre><p class="explain">→ Mount part
 
       <details>
         <summary>7) Add the Thistle Update Client (tuc)</summary>
-        <div class="cmd"><pre><code>wget https://downloads.thistle.tech/.../tuc-1.5.0-aarch64-unknown-linux-musl.gz</code></pre><p class="explain">→ Download the <code>tuc</code> binary.</p></div>
+        <div class="cmd"><pre><code>wget https://downloads.thistle.tech/embedded-client/1.5.0/tuc-1.5.0-aarch64-unknown-linux-musl.gz</code></pre><p class="explain">→ Download the <code>tuc</code> binary.</p></div>
         <div class="cmd"><pre><code>gunzip tuc-1.5.0-aarch64-unknown-linux-musl.gz</code></pre><p class="explain">→ Decompress the binary.</p></div>
         <div class="cmd"><pre><code>chmod +x tuc-1.5.0-aarch64-unknown-linux-musl</code></pre><p class="explain">→ Make it executable.</p></div>
         <div class="cmd"><pre><code>sudo cp tuc-1.5.0-aarch64-unknown-linux-musl mymount/usr/bin/tuc</code></pre><p class="explain">→ Place it at <code>/usr/bin/tuc</code> inside the mounted rootfs so it’s available on the Pi.</p></div>
